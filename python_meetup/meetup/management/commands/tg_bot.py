@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Filters, Updater, CallbackContext
-from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, PreCheckoutQueryHandler
+from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
 from meetup.models import User, Question, Donut, Event
 
@@ -17,16 +17,22 @@ class Command(BaseCommand):
         main()
 
 def start(update: Update, context: CallbackContext):
-    if not context.bot_data['user'].firstname:
+    if context.bot_data['user'].status == 'PARTICIPANT':
+        keyboard = [
+            [InlineKeyboardButton('Программа', callback_data='show_program')],
+            [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
+            [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
+            [InlineKeyboardButton('Задонатить', callback_data='make_donation')],
+        ]
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text='''Приветствуем в нашем чат-боте.
-            Давайте познакомимся.
-            Как вас зовут?
-            (введите, пожалуйста, имя и фамилию через пробел)
-            '''
+            text='''Приветствуем на нашем митапе.
+            Хотите посмотреть программу, задать вопросы спикерам, поучаствовать в нетворкинге или задонатить?
+            ''',
+            reply_markup=InlineKeyboardMarkup(keyboard),
         )
-        return 'GET_NAME'
+        return 'CHOOSE_ACTION'
+
     elif context.bot_data['user'].status == 'SPEAKER':
         events = context.bot_data['user'].events.filter(finish_time__gte=timezone.now())
         print(events)
@@ -42,6 +48,18 @@ def start(update: Update, context: CallbackContext):
             reply_markup = InlineKeyboardMarkup(keyboard)
         )
         return 'NEXT'
+
+
+def choose_action(update: Update, context: CallbackContext):
+    response = update.callback_query.data
+    if response == 'show_program':
+        return show_program(update, context)
+    elif response == 'show_speakers':
+        return show_speakers(update, context)
+    elif response == 'networking':
+        return get_networking(update, context)
+    elif response == 'make_donation':
+        return make_donation(update, context)
 
 
 def get_name(update: Update, context: CallbackContext):

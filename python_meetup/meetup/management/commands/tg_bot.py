@@ -53,8 +53,8 @@ def get_name(update: Update, context: CallbackContext):
             context.bot_data['firstname'], context.bot_data['lastname'] = update.message.text.split(' ', 1)
         except ValueError:
             context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text='Введите, пожалуйста, имя и фамилию через пробел'
+                chat_id=update.message.chat_id,
+                text='Введите, пожалуйста, имя и фамилию через пробел'
             )
             return 'GET_NAME'
         context.bot.send_message(
@@ -65,15 +65,20 @@ def get_name(update: Update, context: CallbackContext):
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
         return 'GET_NAME'
-    elif update.callback_query.data  == 'confirmed':
+    elif update.callback_query.data == 'confirmed':
         context.bot_data['user'].firstname = context.bot_data['firstname']
         context.bot_data['user'].lastname = context.bot_data['lastname']
         context.bot_data['user'].save()
+        keyboard = [
+            [InlineKeyboardButton('Да', callback_data='yes'), InlineKeyboardButton('Нет', callback_data='no')]
+        ]
         context.bot.send_message(
             chat_id=update.callback_query.message.chat_id,
-            text='Введите, пожалуйста, свой email'
+            text='Хотите ли вы участвовать в нетворкинге и общаться с другими участниками?',
+            reply_markup=InlineKeyboardMarkup(keyboard)
         )
-        return 'GET_EMAIL'
+        return 'GET_NETWORKING'
+
 
 def get_email(update: Update, context: CallbackContext):
     user_reply = update.message.text
@@ -85,8 +90,94 @@ def get_email(update: Update, context: CallbackContext):
         return 'GET_EMAIL'
     context.bot_data['user'].email = user_reply
     context.bot_data['user'].save()
-    return 'NEXT'
+    context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text='Укажите, пожалуйста, название компании, которую вы представляете'
+        )
+    return 'GET_COMPANY'
 
+
+def get_company(update: Update, context: CallbackContext):
+    user_reply = update.message.text
+    context.bot_data['user'].company = user_reply
+    context.bot_data['user'].save()
+    context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text='Укажите, пожалуйста, вашу должность в компании'
+        )
+    return 'GET_POSITION'
+
+
+def get_position(update: Update, context: CallbackContext):
+    user_reply = update.message.text
+    context.bot_data['user'].position = user_reply
+    context.bot_data['user'].save()
+    keyboard = [
+        [InlineKeyboardButton('Да. Начнем общаться', callback_data='yes'), InlineKeyboardButton('Нет, хочу поправить', callback_data='no')]
+    ]
+    context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text=f"""Вы работаете в компании {context.bot_data['user'].company} на должности {context.bot_data['user'].position}
+            Ваш email - {context.bot_data['user'].email}
+            Все верно?""",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+    return 'CHECK_DATA'
+
+
+def check_data(update: Update, context: CallbackContext):
+    if update.callback_query.data == 'no':
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text="Введите свой email"
+        )
+        return 'GET_EMAIL'
+    context.bot_data['user'].networking = True
+    context.bot_data['user'].save()
+    if User.objects.filter(networking=True).count() > 1:
+        keyboard = [
+            [InlineKeyboardButton('Программа', callback_data='show_program')],
+            [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
+            [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
+            [InlineKeyboardButton('Задонатить', callback_data='make_donation')],
+        ]
+        text = 'Отлично. Приглашаем к нам на митап'
+    else:
+        keyboard = [
+            [InlineKeyboardButton('Программа', callback_data='show_program')],
+            [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
+            [InlineKeyboardButton('Задонатить', callback_data='make_donation')]
+        ]
+        text = '''В нетворкинге вы пока первый, но скоро появятся новые собеседники.
+        Пока же можете посмотреть программу, задать вопросы спикерам или задонатить организаторам
+        '''
+    context.bot.send_message(
+        chat_id=update.callback_query.message.chat_id,
+        text=text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
+    return 'CHOOSE_ACTION'
+
+
+def get_networking(update: Update, context: CallbackContext):
+    if update.callback_query.data == 'no':
+        keyboard = [
+            [InlineKeyboardButton('Программа', callback_data='show_program')],
+            [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
+            [InlineKeyboardButton('Задонатить', callback_data='make_donation')]
+        ]
+        context.bot.send_message(
+            chat_id=update.callback_query.message.chat_id,
+            text='В таком случае предлагаем ознакомиться с программой, написать спикеру или задонатить организаторам',
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+        return 'CHOOSE_ACTION'
+    context.bot.send_message(
+        chat_id=update.callback_query.message.chat_id,
+        text="""Чтобы участвовать в нетворкинге, оставьте, пожалуйста, дополнительную информацию о себе
+        Введите свой email"""
+    )
+    return 'GET_EMAIL'
 
 
 def user_input_handler(update: Update, context: CallbackContext):
@@ -117,6 +208,10 @@ def user_input_handler(update: Update, context: CallbackContext):
         'START': start,
         'GET_NAME': get_name,
         'GET_EMAIL': get_email,
+        'GET_COMPANY': get_company,
+        'GET_POSITION': get_position,
+        'CHECK_DATA': check_data,
+        'GET_NETWORKING': get_networking,
     }
 
     state_handler = states_function[user_state]

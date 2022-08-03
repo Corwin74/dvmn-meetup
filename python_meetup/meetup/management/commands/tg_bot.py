@@ -1,10 +1,7 @@
 import os
-import django
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'python_meetup.settings')
-django.setup()
 
 from dotenv import load_dotenv
+from django.core.management.base import BaseCommand
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice, Update
 from telegram.ext import Filters, Updater, CallbackContext
@@ -12,6 +9,10 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, P
 
 from meetup.models import User, Question, Donut, Event
 
+
+class Command(BaseCommand):
+    def handle(self, *args, **options):
+        main()
 
 def start(update: Update, context: CallbackContext):
     context.bot.send_message(
@@ -71,7 +72,3 @@ def main():
     dispatcher.add_handler(CommandHandler('start', user_input_handler))
     updater.start_polling()
     updater.idle()
-
-
-if __name__ == '__main__':
-    main()

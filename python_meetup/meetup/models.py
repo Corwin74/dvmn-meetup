@@ -28,7 +28,7 @@ class User(models.Model):
         max_length=50,
         blank=True
     )
-    second_name = models.CharField(
+    lastname = models.CharField(
         'Фамилия',
         max_length=50,
         blank=True
@@ -60,7 +60,7 @@ class User(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"{self.firstname} {self.second_name} {self.tg_nick} {self.chat_id}"
+        return f"{self.firstname} {self.lastname} {self.tg_nick} {self.chat_id}"
 
     class Meta:
         verbose_name = 'Участник',

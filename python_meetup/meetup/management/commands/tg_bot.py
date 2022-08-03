@@ -10,6 +10,7 @@ from telegram.ext import Filters, Updater, CallbackContext
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
 from meetup.models import User, Question, Donut, Event
+from .meet_schedule import show_program
 
 
 class Command(BaseCommand):

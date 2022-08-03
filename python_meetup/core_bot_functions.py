@@ -6,6 +6,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Filters, Updater, CallbackContext
 
 from meetup.models import User, Question, Donut, Event
+from meet_schedule import show_program
 
 
 def start(update: Update, context: CallbackContext):

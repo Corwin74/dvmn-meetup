@@ -15,7 +15,12 @@ class User(models.Model):
     tg_state = models.CharField(
         'Состояние бота',
         max_length=50,
-        default='start'
+        default='START'
+    )
+    email = models.CharField(
+        'Email',
+        max_length=100,
+        blank=True
     )
 
     firstname = models.CharField(
@@ -55,7 +60,7 @@ class User(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"{self.firstname} {self.second_name}"
+        return f"{self.firstname} {self.second_name} {self.tg_nick} {self.chat_id}"
 
     class Meta:
         verbose_name = 'Участник',

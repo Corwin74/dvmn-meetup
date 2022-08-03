@@ -4,8 +4,6 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'python_meetup.settings')
 django.setup()
 
-from django.conf import settings
-
 from dotenv import load_dotenv
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice, Update
@@ -16,35 +14,37 @@ from meetup.models import User, Question, Donut, Event
 
 
 def start(update: Update, context: CallbackContext):
-    user, created = User.objects.get_or_create(chat_id=update.message.chat_id)
-    context.bot_data['user'] = user
-    if created:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text='Привет'
-        )
-    else:
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
-            text='Снова привет'
-        )
-    return 'START'
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text='Привет'
+    )
+    return 'NEXT'
 
 
 def user_input_handler(update: Update, context: CallbackContext):
     if update.message:
         user_reply = update.message.text
         chat_id = update.message.chat_id
+        username = update.message.from_user.username
     elif update.callback_query.data:
         user_reply = update.callback_query.data
         chat_id = update.callback_query.message.chat_id
+        username = update.callback_query.from_user.username
     else:
         return
-
+    print(username)
+    user, created = User.objects.get_or_create(
+        chat_id=chat_id,
+        defaults={
+            'tg_nick': username,
+            'firstname': 'Noname'
+        }
+    )
+    context.bot_data['user'] = user
     if user_reply == '/start':
         user_state = 'START'
     else:
-        user_state = context.bot_data.get('user').status
+        user_state = user.tg_state
 
     states_function = {
         'START': start,
@@ -52,7 +52,8 @@ def user_input_handler(update: Update, context: CallbackContext):
 
     state_handler = states_function[user_state]
     next_state = state_handler(update, context)
-    context.bot_data['user'].status = next_state
+    context.bot_data['user'].tg_state = next_state
+    context.bot_data['user'].save()
 
 
 def main():

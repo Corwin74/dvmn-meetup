@@ -11,6 +11,7 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
 from meetup.models import User, Question, Donut, Event
 from meet_schedule import show_program
+from donation import make_donation
 
 from core_bot_functions import (
     start,
@@ -22,6 +23,7 @@ from core_bot_functions import (
     get_networking,
     get_position,
 )
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

@@ -7,6 +7,7 @@ from telegram.ext import Filters, Updater, CallbackContext
 
 from meetup.models import User, Question, Donut, Event
 from meet_schedule import show_program
+from donation import make_donation
 
 
 def start(update: Update, context: CallbackContext):

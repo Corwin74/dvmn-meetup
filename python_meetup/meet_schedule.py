@@ -1,3 +1,4 @@
+import datetime
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext
 from meetup.models import Event
@@ -19,7 +20,7 @@ def event_details(update: Update, context: CallbackContext):
     event = Event.objects.get(id=event_id)
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f'Детали евента: {event.name}',
+        text=f'{event.name}\n\n{event.finish_time.strftime("%H:%M")} - {event.finish_time.strftime("%H:%M")}\n\n{event.description}',
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     message = update.effective_message

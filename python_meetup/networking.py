@@ -6,7 +6,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Filters, Updater, CallbackContext
 
 from core_bot_functions import start, get_user_info, get_networking
-from meetup.models import User, Question, Donut, Event
+from meetup.models import User, Question, Donate, Event
 
 
 def confirm_networking(update: Update, context: CallbackContext):

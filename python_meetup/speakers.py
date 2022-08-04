@@ -4,7 +4,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Filters, Updater, CallbackContext
 
 from core_bot_functions import start, show_speakers
-from meetup.models import User, Question, Donut, Event
+from meetup.models import User, Question, Donate, Event
 
 
 def get_speaker(update: Update, context: CallbackContext):

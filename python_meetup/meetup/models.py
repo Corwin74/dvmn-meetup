@@ -149,12 +149,12 @@ class Question(models.Model):
         verbose_name_plural = 'Вопросы'
 
 
-class Donut(models.Model):
+class Donate(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Кто донатил',
-        related_name='donuts'
+        related_name='donates'
     )
     amount = models.DecimalField(
         'Сумма доната',

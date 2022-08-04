@@ -6,7 +6,7 @@ from django.utils import timezone
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Filters, Updater, CallbackContext
 
-from meetup.models import User, Question, Donut, Event
+from meetup.models import User, Question, Donate, Event
 from meet_schedule import show_program
 from donation import make_donation
 

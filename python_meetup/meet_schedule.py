@@ -27,4 +27,30 @@ def show_program(update: Update, context: CallbackContext):
         chat_id=message.chat_id,
         message_id=message.message_id
     )
-    return 'SHOW_EVENT'
+    return 'EVENT_DETAILS'
+
+def event_details(update: Update, context: CallbackContext):
+    query = update.callback_query
+
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    query.answer()
+
+    keyboard = [[InlineKeyboardButton('Назад', callback_data='show_program')]]
+    event_id = int(update.callback_query.data)
+    event = Event.objects.get(id=event_id)
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f'Детали евента: {event.name}',
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+    message = update.effective_message
+    context.bot.delete_message(
+        chat_id=message.chat_id,
+        message_id=message.message_id
+    )
+    return 'CHOOSE_ACTION'
+
+
+#def event_details():
+#   print('event_details')

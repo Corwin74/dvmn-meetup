@@ -10,7 +10,7 @@ from telegram.ext import Filters, Updater, CallbackContext
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
 from meetup.models import User, Question, Donut, Event
-from meet_schedule import show_program
+from meet_schedule import event_details
 from donation import make_donation
 
 from core_bot_functions import (
@@ -73,6 +73,7 @@ def user_input_handler(update: Update, context: CallbackContext):
         'HANDLE_EVENT': handle_event,
         'GET_ANSWER': get_answer,
         'ANSWER_QUESTIONS': answer_questions,
+        'EVENT_DETAILS': event_details,
     }
 
     state_handler = states_function[user_state]

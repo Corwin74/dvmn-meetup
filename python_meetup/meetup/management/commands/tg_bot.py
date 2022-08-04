@@ -22,6 +22,9 @@ from core_bot_functions import (
     get_name,
     get_networking,
     get_position,
+    get_info,
+    show_event,
+    handle_event,
 )
 
 
@@ -60,9 +63,12 @@ def user_input_handler(update: Update, context: CallbackContext):
         'GET_EMAIL': get_email,
         'GET_COMPANY': get_company,
         'GET_POSITION': get_position,
+        'GET_INFO': get_info,
         'CHECK_DATA': check_data,
         'GET_NETWORKING': get_networking,
         'CHOOSE_ACTION': choose_action,
+        'SHOW_EVENT': show_event,
+        'HANDLE_EVENT': handle_event,
     }
 
     state_handler = states_function[user_state]

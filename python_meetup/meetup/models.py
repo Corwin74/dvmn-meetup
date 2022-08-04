@@ -43,6 +43,10 @@ class User(models.Model):
         max_length=100,
         blank=True
     )
+    info = models.TextField(
+        'Информация о себе',
+        blank=True,
+    )
 
     STATUS_CHOICES = [
         ('PARTICIPANT', 'Участник'),
@@ -60,7 +64,7 @@ class User(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"{self.firstname} {self.lastname} {self.tg_nick} {self.chat_id}"
+        return f"{self.firstname} {self.lastname}"
 
     class Meta:
         verbose_name = 'Участник',

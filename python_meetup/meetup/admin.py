@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.utils import timezone
 
-from .models import Event, User, Question, Donut
+from .models import Event, User, Question, Donate
 
 
 class EventStatusFilter(SimpleListFilter):
@@ -65,8 +65,8 @@ class QuestionAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Donut)
-class DonutAdmin(admin.ModelAdmin):
+@admin.register(Donate)
+class DonateAdmin(admin.ModelAdmin):
     raw_id_fields = ('user',)
     list_filter = ('amount',)
     list_display = (

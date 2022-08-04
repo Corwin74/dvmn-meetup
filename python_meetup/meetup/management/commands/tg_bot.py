@@ -1,18 +1,3 @@
-import os
-import re
-
-from dotenv import load_dotenv
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-
-from telegram import Update
-from telegram.ext import Filters, Updater, CallbackContext
-from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
-
-from meetup.models import User, Question, Donut, Event
-from meet_schedule import show_program
-from donation import make_donation
-
 from core_bot_functions import (
     start,
     choose_action,
@@ -23,6 +8,21 @@ from core_bot_functions import (
     get_networking,
     get_position,
 )
+import os
+import re
+
+from dotenv import load_dotenv
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+
+from telegram import Update
+from telegram.ext import Filters, Updater, CallbackContext
+from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
+from telegram.ext import PreCheckoutQueryHandler
+
+from meetup.models import User, Question, Donate, Event
+from meet_schedule import show_program
+from donation import precheckout_callback, successful_payment_callback
 
 
 class Command(BaseCommand):
@@ -84,5 +84,8 @@ def main():
     dispatcher.add_handler(CallbackQueryHandler(user_input_handler))
     dispatcher.add_handler(MessageHandler(Filters.text, user_input_handler))
     dispatcher.add_handler(CommandHandler('start', user_input_handler))
+    dispatcher.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    dispatcher.add_handler(MessageHandler(
+        Filters.successful_payment, successful_payment_callback))
     updater.start_polling()
     updater.idle()

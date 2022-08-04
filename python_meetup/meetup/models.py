@@ -138,6 +138,7 @@ class Question(models.Model):
         'Время ответа',
         null=True,
         blank=True,
+        default=None,
     )
 
     def __str__(self) -> str:

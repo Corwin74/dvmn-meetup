@@ -22,8 +22,7 @@ def start(update: Update, context: CallbackContext):
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text='''Приветствуем на нашем митапе.
-        ''',
+        text='''Приветствуем на нашем митапе!''',
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
     message = update.effective_message
@@ -49,11 +48,10 @@ def choose_action(update: Update, context: CallbackContext):
         return get_personal_events(update, context)
     elif response == 'my_questions':
         return get_questions(update, context)
-    
 
 
 def get_personal_events(update: Update, context: CallbackContext):
-    events =  context.bot_data['user'].events.filter(finish_time__gte=timezone.now())
+    events = context.bot_data['user'].events.filter(finish_time__gte=timezone.now())
     keyboard = [
         [InlineKeyboardButton(f"{event.name} - {event.start_time.strftime('%H:%M')}", callback_data = str(event.id))]
         for event in events
@@ -366,8 +364,20 @@ def get_answer(update: Update, context: CallbackContext):
         context.bot_data['question'].save()
         return get_questions(update, context)
 
-
-
-
-# def make_networking(update: Update, context: CallbackContext):
-#     if 
+def show_speakers(update: Update, context: CallbackContext):
+    speakers = User.objects.filter(status='SPEAKER')
+    keyboard = [
+        [InlineKeyboardButton(f"{speaker} - {speaker.company}", callback_data=str(speaker.id))]
+        for speaker in speakers
+    ] + [[InlineKeyboardButton('В начало', callback_data='to_start')]]
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Список выступающих на митапе',
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+    message = update.effective_message
+    context.bot.delete_message(
+        chat_id=message.chat_id,
+        message_id=message.message_id
+    )
+    return 'GET_SPEAKER'

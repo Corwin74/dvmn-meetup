@@ -64,7 +64,7 @@ class User(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"{self.firstname} {self.lastname} {self.chat_id} {self.tg_nick}"
+        return f"{self.firstname} {self.lastname}"
 
     class Meta:
         verbose_name = 'Участник',
@@ -138,6 +138,7 @@ class Question(models.Model):
         'Время ответа',
         null=True,
         blank=True,
+        default=None,
     )
 
     def __str__(self) -> str:

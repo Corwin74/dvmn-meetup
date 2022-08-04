@@ -28,6 +28,13 @@ from core_bot_functions import (
     get_answer,
     answer_questions,
 )
+from speakers import (
+    get_speaker,
+    handle_speaker,
+    get_question,
+    send_question,
+)
+
 
 
 class Command(BaseCommand):
@@ -73,6 +80,10 @@ def user_input_handler(update: Update, context: CallbackContext):
         'HANDLE_EVENT': handle_event,
         'GET_ANSWER': get_answer,
         'ANSWER_QUESTIONS': answer_questions,
+        'GET_SPEAKER': get_speaker,
+        'HANDLE_SPEAKER': handle_speaker,
+        'GET_QUESTION': get_question,
+        'SEND_QUESTION': send_question,
     }
 
     state_handler = states_function[user_state]

@@ -22,8 +22,7 @@ def start(update: Update, context: CallbackContext):
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text='''Приветствуем на нашем митапе.
-        ''',
+        text='''Приветствуем на нашем митапе!''',
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
     message = update.effective_message
@@ -366,8 +365,20 @@ def get_answer(update: Update, context: CallbackContext):
         context.bot_data['question'].save()
         return get_questions(update, context)
 
-
-
-
-# def make_networking(update: Update, context: CallbackContext):
-#     if 
+def show_speakers(update: Update, context: CallbackContext):
+    speakers = User.objects.filter(status='SPEAKER')
+    keyboard = [
+        [InlineKeyboardButton(f"{speaker} - {speaker.company}", callback_data=str(speaker.id))]
+        for speaker in speakers
+    ] + [[InlineKeyboardButton('В начало', callback_data='to_start')]]
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Список выступающих на митапе',
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+    message = update.effective_message
+    context.bot.delete_message(
+        chat_id=message.chat_id,
+        message_id=message.message_id
+    )
+    return 'GET_SPEAKER'

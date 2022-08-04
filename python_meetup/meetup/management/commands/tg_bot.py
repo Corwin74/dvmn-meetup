@@ -25,6 +25,8 @@ from core_bot_functions import (
     get_info,
     show_event,
     handle_event,
+    get_answer,
+    answer_questions,
 )
 
 
@@ -69,6 +71,8 @@ def user_input_handler(update: Update, context: CallbackContext):
         'CHOOSE_ACTION': choose_action,
         'SHOW_EVENT': show_event,
         'HANDLE_EVENT': handle_event,
+        'GET_ANSWER': get_answer,
+        'ANSWER_QUESTIONS': answer_questions,
     }
 
     state_handler = states_function[user_state]

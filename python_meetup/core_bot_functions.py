@@ -1,3 +1,4 @@
+import random
 import re
 
 from django.utils import timezone
@@ -11,50 +12,27 @@ from donation import make_donation
 
 
 def start(update: Update, context: CallbackContext):
-    if context.bot_data['user'].status == 'PARTICIPANT':
-        keyboard = [
-            [InlineKeyboardButton('Программа', callback_data='show_program')],
-            [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
-            [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
-            [InlineKeyboardButton('Задонатить', callback_data='make_donation')],
-        ]
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text='''Приветствуем на нашем митапе.
-            Хотите посмотреть программу, задать вопросы спикерам, поучаствовать в нетворкинге или задонатить?
-            ''',
-            reply_markup=InlineKeyboardMarkup(keyboard),
+    keyboard = [
+        [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'].status == 'SPEAKER' else None,
+        [InlineKeyboardButton('Вопросы ко мне', callback_data='my_questions')] if context.bot_data['user'].status == 'SPEAKER' else None,
+        [InlineKeyboardButton('Программа', callback_data='show_program')],
+        [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
+        [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
+        [InlineKeyboardButton('Задонатить', callback_data='make_donation')],
+    ]
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='''Приветствуем на нашем митапе.
+        ''',
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
+    message = update.effective_message
+    if message:
+        context.bot.delete_message(
+            chat_id=message.chat_id,
+            message_id=message.message_id
         )
-        message = update.effective_message
-        if message:
-            context.bot.delete_message(
-                chat_id=message.chat_id,
-                message_id=message.message_id
-            )
-        return 'CHOOSE_ACTION'
-
-    elif context.bot_data['user'].status == 'SPEAKER':
-        keyboard = [
-            [InlineKeyboardButton('Мои предстоящие выступления', callback_data='personal_program')],
-            [InlineKeyboardButton('Программа', callback_data='show_program')],
-            [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
-            [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
-            [InlineKeyboardButton('Задонатить', callback_data='make_donation')],
-        ]
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"""{context.bot_data['user']}, здравствуйте.
-            Хотите посмотреть программу, задать вопросы спикерам, поучаствовать в нетворкинге, посмотреть Ваши предстоящие мероприятия?
-            """,
-            reply_markup = InlineKeyboardMarkup(keyboard)
-        )
-        message = update.effective_message
-        if message:
-            context.bot.delete_message(
-                chat_id=message.chat_id,
-                message_id=message.message_id
-            )
-        return 'CHOOSE_ACTION'
+    return 'CHOOSE_ACTION'
 
 
 def choose_action(update: Update, context: CallbackContext):
@@ -69,6 +47,9 @@ def choose_action(update: Update, context: CallbackContext):
         return make_donation(update, context)
     elif response == 'personal_program':
         return get_personal_events(update, context)
+    elif response == 'my_questions':
+        return get_questions(update, context)
+    
 
 
 def get_personal_events(update: Update, context: CallbackContext):
@@ -256,7 +237,7 @@ def check_data(update: Update, context: CallbackContext):
     context.bot_data['user'].save()
     if User.objects.filter(networking=True).count() > 1:
         keyboard = [
-            [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'] else None,
+            [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'].status == 'SPEAKER' else None,
             [InlineKeyboardButton('Программа', callback_data='show_program')],
             [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
             [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
@@ -265,7 +246,7 @@ def check_data(update: Update, context: CallbackContext):
         text = 'Отлично. Приглашаем к нам на митап'
     else:
         keyboard = [
-            [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'] else None,
+            [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'].status == 'SPEAKER' else None,
             [InlineKeyboardButton('Программа', callback_data='show_program')],
             [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
             [InlineKeyboardButton('Задонатить', callback_data='make_donation')]
@@ -300,6 +281,93 @@ def get_networking(update: Update, context: CallbackContext):
         )
         return 'GET_NAME'
     return 'MAKE_NETWORKING'
+
+
+def get_questions(update: Update, context: CallbackContext):
+    questions_count = context.bot_data['user'].questions_to.filter(answered=False).count()
+    if questions_count == 0:
+        keyboard = [
+            [InlineKeyboardButton('В начало', callback_data='to_start')],
+        ]
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='У вас нет неотвеченных вопросов',
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+        message = update.effective_message
+        context.bot.delete_message(
+            chat_id=message.chat_id,
+            message_id=message.message_id
+        )
+        return 'ANSWER_QUESTIONS'
+    keyboard = [
+        [InlineKeyboardButton('Ответить на вопрос', callback_data='answer')],
+        [InlineKeyboardButton('В начало', callback_data='to_start')],
+    ]
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f'''У вас {questions_count} неотвеченных вопросов
+        Хотите ответить?''',
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+    message = update.effective_message
+    context.bot.delete_message(
+        chat_id=message.chat_id,
+        message_id=message.message_id
+    )
+    return 'ANSWER_QUESTIONS'
+
+
+def answer_questions(update: Update, context: CallbackContext):
+    if update.callback_query and update.callback_query.data == 'to_start':
+        return start(update, context)
+    question = random.choice(context.bot_data['user'].questions_to.filter(answered=False).select_related())
+    keyboard = [
+        [InlineKeyboardButton('Следующий вопрос', callback_data='next_question')],
+        [InlineKeyboardButton('Не отвечать', callback_data='mark_answered')],
+        [InlineKeyboardButton('В начало', callback_data='to_start')],
+    ]
+    context.bot_data['question'] = question
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=question.text,
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+    message = update.effective_message
+    context.bot.delete_message(
+        chat_id=message.chat_id,
+        message_id=message.message_id
+    )
+    return 'GET_ANSWER'
+
+
+def get_answer(update: Update, context: CallbackContext):
+    if update.callback_query:
+        if update.callback_query.data == 'to_start':
+            return start(update, context)
+        elif update.callback_query.data == 'mark_answered':
+            context.bot_data['question'].answered=True
+            context.bot_data['question'].save()
+            return answer_questions(update, context)
+        elif update.callback_query.data == 'next_question':
+            return answer_questions(update, context)
+    if update.message:
+        answer = f"""Ответ на вопрос {context.bot_data['question'].text}
+        от {context.bot_data['user']}
+        {update.message.text}
+        """
+        context.bot.send_message(
+            chat_id=int(context.bot_data['question'].asker.chat_id),
+            text=answer
+        )
+        context.bot_data['question'].answer = update.message.text
+        context.bot_data['question'].answer_time = timezone.now()
+        context.bot_data['question'].answered = True
+        context.bot_data['question'].save()
+        return get_questions(update, context)
+
+
+
 
 # def make_networking(update: Update, context: CallbackContext):
 #     if 

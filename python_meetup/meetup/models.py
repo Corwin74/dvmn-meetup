@@ -130,6 +130,15 @@ class Question(models.Model):
         'Отвечен',
         default=False
     )
+    answer = models.TextField(
+        'Ответ',
+        blank=True
+    )
+    answer_time = models.DateTimeField(
+        'Время ответа',
+        null=True,
+        blank=True,
+    )
 
     def __str__(self) -> str:
         return f"Вопрос {self.answerer.__str__()}"

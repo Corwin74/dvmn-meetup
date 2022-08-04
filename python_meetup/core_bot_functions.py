@@ -246,11 +246,17 @@ def check_data(update: Update, context: CallbackContext):
             chat_id=update.effective_chat.id,
             text="Введите свой email"
         )
+        message = update.effective_message
+        context.bot.delete_message(
+            chat_id=message.chat_id,
+            message_id=message.message_id
+        )
         return 'GET_EMAIL'
     context.bot_data['user'].networking = True
     context.bot_data['user'].save()
     if User.objects.filter(networking=True).count() > 1:
         keyboard = [
+            [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'] else None,
             [InlineKeyboardButton('Программа', callback_data='show_program')],
             [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
             [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
@@ -259,6 +265,7 @@ def check_data(update: Update, context: CallbackContext):
         text = 'Отлично. Приглашаем к нам на митап'
     else:
         keyboard = [
+            [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'] else None,
             [InlineKeyboardButton('Программа', callback_data='show_program')],
             [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
             [InlineKeyboardButton('Задонатить', callback_data='make_donation')]
@@ -293,3 +300,6 @@ def get_networking(update: Update, context: CallbackContext):
         )
         return 'GET_NAME'
     return 'MAKE_NETWORKING'
+
+# def make_networking(update: Update, context: CallbackContext):
+#     if 

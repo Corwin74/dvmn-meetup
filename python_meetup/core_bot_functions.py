@@ -287,6 +287,11 @@ def make_networking(update: Update, context: CallbackContext):
         Сейчас нас {networking_connections_count} человек""",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
+    message = update.effective_message
+    context.bot.delete_message(
+        chat_id=message.chat_id,
+        message_id=message.message_id
+    )
     return 'NETWORK_COMMUNICATE'
 
 

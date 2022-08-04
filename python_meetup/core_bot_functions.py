@@ -48,11 +48,10 @@ def choose_action(update: Update, context: CallbackContext):
         return get_personal_events(update, context)
     elif response == 'my_questions':
         return get_questions(update, context)
-    
 
 
 def get_personal_events(update: Update, context: CallbackContext):
-    events =  context.bot_data['user'].events.filter(finish_time__gte=timezone.now())
+    events = context.bot_data['user'].events.filter(finish_time__gte=timezone.now())
     keyboard = [
         [InlineKeyboardButton(f"{event.name} - {event.start_time.strftime('%H:%M')}", callback_data = str(event.id))]
         for event in events

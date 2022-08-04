@@ -15,6 +15,7 @@ def get_speaker(update: Update, context: CallbackContext):
     events = context.bot_data['speaker'].events.all()
     text = f"""{context.bot_data['speaker']}
     {context.bot_data['speaker'].position} в {context.bot_data['speaker'].company}
+    {context.bot_data['speaker'].info}
     Выступает
     """ + "\n".join([f"{event.start_time.strftime('%d %B %H:%M')} - {event.name}" for event in events])
     keyboard = [

@@ -64,7 +64,7 @@ class User(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"{self.firstname} {self.lastname} {self.chat_id} {self.tg_nick}"
+        return f"{self.firstname} {self.lastname}"
 
     class Meta:
         verbose_name = 'Участник',

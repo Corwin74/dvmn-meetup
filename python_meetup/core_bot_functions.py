@@ -13,8 +13,8 @@ from donation import make_donation
 
 def start(update: Update, context: CallbackContext):
     keyboard = [
-        [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'].status == 'SPEAKER' else None,
-        [InlineKeyboardButton('Вопросы ко мне', callback_data='my_questions')] if context.bot_data['user'].status == 'SPEAKER' else None,
+        [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'].status == 'SPEAKER' else [],
+        [InlineKeyboardButton('Вопросы ко мне', callback_data='my_questions')] if context.bot_data['user'].status == 'SPEAKER' else [],
         [InlineKeyboardButton('Программа', callback_data='show_program')],
         [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
         [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
@@ -200,6 +200,8 @@ def get_position(update: Update, context: CallbackContext):
 def get_info(update: Update, context: CallbackContext):
     if update.message:
         context.bot_data['user'].info = update.message.text
+    else:
+        context.bot_data['user'].info = ''
     keyboard = [
         [InlineKeyboardButton('Да. Начнем общаться', callback_data='yes'), InlineKeyboardButton('Нет, хочу поправить', callback_data='no')]
     ]
@@ -233,52 +235,59 @@ def check_data(update: Update, context: CallbackContext):
         return 'GET_EMAIL'
     context.bot_data['user'].networking = True
     context.bot_data['user'].save()
-    if User.objects.filter(networking=True).count() > 1:
-        keyboard = [
-            [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'].status == 'SPEAKER' else None,
-            [InlineKeyboardButton('Программа', callback_data='show_program')],
-            [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
-            [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
-            [InlineKeyboardButton('Задонатить', callback_data='make_donation')],
-        ]
-        text = 'Отлично. Приглашаем к нам на митап'
-    else:
-        keyboard = [
-            [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'].status == 'SPEAKER' else None,
-            [InlineKeyboardButton('Программа', callback_data='show_program')],
-            [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
-            [InlineKeyboardButton('Задонатить', callback_data='make_donation')]
-        ]
-        text = '''В нетворкинге вы пока первый, но скоро появятся новые собеседники.
-        Пока же можете посмотреть программу, задать вопросы спикерам или задонатить организаторам
-        '''
+    return get_networking(update, context)
+
+
+def get_user_info(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=text,
-        reply_markup=InlineKeyboardMarkup(keyboard),
+        text="""Чтобы участвовать в нетворкинге, оставьте, пожалуйста, дополнительную информацию о себе
+        Введите, пожалуйста, имя и фамилию через пробел"""
     )
     message = update.effective_message
     context.bot.delete_message(
         chat_id=message.chat_id,
         message_id=message.message_id
     )
-    return 'CHOOSE_ACTION'
+    return 'GET_NAME'
 
 
 def get_networking(update: Update, context: CallbackContext):
     if not context.bot_data['user'].firstname:
+        return get_user_info(update, context)
+    elif context.bot_data['user'].networking == False:
+        keyboard = [
+            [InlineKeyboardButton('Подтвердить участие в нетворкинге', callback_data='confirm')],
+            [InlineKeyboardButton('В начало', callback_data='to_start')]
+        ]
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="""Чтобы участвовать в нетворкинге, оставьте, пожалуйста, дополнительную информацию о себе
-            Введите, пожалуйста, имя и фамилию через пробел"""
+            text="Для участия в нетворкинге нужжно ваше согласие",
+            reply_markup=InlineKeyboardMarkup(keyboard)
         )
         message = update.effective_message
         context.bot.delete_message(
             chat_id=message.chat_id,
             message_id=message.message_id
         )
-        return 'GET_NAME'
-    return 'MAKE_NETWORKING'
+        return 'CONFIRM_NETWORKING'
+    return make_networking(update, context)
+
+
+def make_networking(update: Update, context: CallbackContext):
+    networking_connections_count = User.objects.filter(networking=True).count()
+    keyboard = [
+        [InlineKeyboardButton('Познакомиться', callback_data='find_contact')] if networking_connections_count > 1 else [],
+        [InlineKeyboardButton('Изменить информацию о себе', callback_data='change_info'), InlineKeyboardButton('Отказаться от участия в нетворкинге', callback_data='cancel_networking')],
+        [InlineKeyboardButton('В начало', callback_data='to_start')]
+    ]
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"""{context.bot_data['user'].firstname}, рады видеть вас в нетворкинге.
+        Сейчас нас {networking_connections_count} человек""",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+    return 'NETWORK_COMMUNICATE'
 
 
 def get_questions(update: Update, context: CallbackContext):
@@ -345,10 +354,17 @@ def get_answer(update: Update, context: CallbackContext):
             return start(update, context)
         elif update.callback_query.data == 'mark_answered':
             context.bot_data['question'].answered=True
+            context.bot_data['question'].answer_time = timezone.now()
             context.bot_data['question'].save()
-            return answer_questions(update, context)
+            try:
+                return answer_questions(update, context)
+            except IndexError:
+                return get_questions(update, context)
         elif update.callback_query.data == 'next_question':
-            return answer_questions(update, context)
+            try:
+                return answer_questions(update, context)
+            except IndexError:
+                return get_questions(update, context)
     if update.message:
         answer = f"""Ответ на вопрос {context.bot_data['question'].text}
         от {context.bot_data['user']}
@@ -362,7 +378,10 @@ def get_answer(update: Update, context: CallbackContext):
         context.bot_data['question'].answer_time = timezone.now()
         context.bot_data['question'].answered = True
         context.bot_data['question'].save()
-        return get_questions(update, context)
+        try:
+            return answer_questions(update, context)
+        except IndexError:
+            return get_questions(update, context)
 
 def show_speakers(update: Update, context: CallbackContext):
     speakers = User.objects.filter(status='SPEAKER')

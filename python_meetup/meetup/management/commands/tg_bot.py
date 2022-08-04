@@ -21,6 +21,7 @@ from core_bot_functions import (
     get_email,
     get_name,
     get_networking,
+    make_networking,
     get_position,
     get_info,
     show_event,
@@ -34,8 +35,7 @@ from speakers import (
     get_question,
     send_question,
 )
-
-
+from networking import network_communicate, confirm_networking
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -85,6 +85,9 @@ def user_input_handler(update: Update, context: CallbackContext):
         'HANDLE_SPEAKER': handle_speaker,
         'GET_QUESTION': get_question,
         'SEND_QUESTION': send_question,
+        'MAKE_NETWORKING': make_networking,
+        'NETWORK_COMMUNICATE': network_communicate,
+        'CONFIRM_NETWORKING': confirm_networking
     }
 
     state_handler = states_function[user_state]

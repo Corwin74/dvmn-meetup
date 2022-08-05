@@ -1,8 +1,12 @@
+from time import sleep
+import requests
+
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.utils import timezone
 
-from .models import Event, User, Question, Donate
+from .models import Event, User, Question, Donate, Message
 
 
 class EventStatusFilter(SimpleListFilter):
@@ -62,6 +66,7 @@ class QuestionAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         'ask_time',
+        'answer_time',
     )
 
 
@@ -75,3 +80,51 @@ class DonateAdmin(admin.ModelAdmin):
         'time'
     )
     readonly_fields = ('time',)
+
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    readonly_fields = ('time_sent',)
+    raw_id_fields = ('targets',)
+    list_display = ('__str__', 'time_sent')
+
+    def response_add(self, request, obj, post_url_continue=...):
+        if not obj.to_send:
+            return super().response_add(request, obj, post_url_continue)
+        token = settings.TG_TOKEN
+        destinations = [target.chat_id for target in obj.targets.all()]
+        for chat_id in destinations:
+            response = requests.post(
+                url=f'https://api.telegram.org/bot{token}/sendMessage', data={
+                    'chat_id': chat_id,
+                    'text': obj.text,
+                }
+            )
+            print(response)
+            response.raise_for_status()
+            sleep(2)
+        obj.to_send = False
+        obj.time_sent = timezone.now()
+        obj.save()
+        return super().response_add(request, obj, post_url_continue)
+
+    def response_change(self, request, obj):
+        if not obj.to_send:
+            return super().response_change(request, obj)
+        token = settings.TG_TOKEN
+        destinations = [target.chat_id for target in obj.targets.all()]
+        for chat_id in destinations:
+            response = requests.post(
+                url=f'https://api.telegram.org/bot{token}/sendMessage', data={
+                    'chat_id': chat_id,
+                    'text': obj.text,
+                }
+            )
+            print(response)
+            response.raise_for_status()
+            sleep(2)
+        obj.to_send = False
+        obj.time_sent = timezone.now()
+        obj.save()
+        return super().response_change(request, obj)

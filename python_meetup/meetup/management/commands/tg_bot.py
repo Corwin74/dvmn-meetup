@@ -1,9 +1,8 @@
 import os
-import re
 
 from dotenv import load_dotenv
+from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
 from telegram import Update
 from telegram.ext import Filters, Updater, CallbackContext, PreCheckoutQueryHandler
@@ -99,7 +98,7 @@ def user_input_handler(update: Update, context: CallbackContext):
 
 def main():
     load_dotenv()
-    tg_token = os.getenv('TG_TOKEN')
+    tg_token = settings.TG_TOKEN
     updater = Updater(tg_token)
 
     bot_commands = [

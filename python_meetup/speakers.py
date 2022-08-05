@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 from django.utils import timezone
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -13,19 +15,20 @@ def get_speaker(update: Update, context: CallbackContext):
     speaker_id = int(update.callback_query.data)
     context.bot_data['speaker'] = User.objects.get(id=speaker_id)
     events = context.bot_data['speaker'].events.all()
-    text = f"""{context.bot_data['speaker']}
+    text = dedent(f"""
+    <b>{context.bot_data['speaker']}</b>
     {context.bot_data['speaker'].position} в {context.bot_data['speaker'].company}
     {context.bot_data['speaker'].info}
-    Выступает
-    """ + "\n".join([f"{event.start_time.strftime('%d %B %H:%M')} - {event.name}" for event in events])
+    <u>Выступает</u>
+    """) + "\n".join([f"{event.start_time.strftime('%d %B %H:%M')} - {event.name}" for event in events])
     keyboard = [
         [InlineKeyboardButton('Задать вопрос', callback_data=str(context.bot_data['speaker'].id))],
-        [InlineKeyboardButton('Назад', callback_data='back')],
-        [InlineKeyboardButton('В начало', callback_data='to_start')],
+        [InlineKeyboardButton('Назад', callback_data='back'), InlineKeyboardButton('Главное меню', callback_data='to_start')],
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=text,
+        parse_mode='HTML',
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
     message = update.effective_message
@@ -43,12 +46,13 @@ def handle_speaker(update: Update, context: CallbackContext):
         return show_speakers(update, context)
     keyboard = [
         [InlineKeyboardButton('Назад', callback_data='back')],
-        [InlineKeyboardButton('В начало', callback_data='to_start')],
+        [InlineKeyboardButton('Главное меню', callback_data='to_start')],
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"""Напишите свой вопрос ниже.
-        {context.bot_data['speaker']} сможет ответить вам через этот чат""",
+        text=dedent(f"""
+        Напишите свой вопрос ниже.
+        {context.bot_data['speaker']} сможет ответить вам через этот чат"""),
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     message = update.effective_message
@@ -68,14 +72,15 @@ def get_question(update: Update, context: CallbackContext):
     question = update.message.text
     keyboard = [
         [InlineKeyboardButton('Верно, отправляйте', callback_data=question), InlineKeyboardButton('Изменить', callback_data='correct')],
-        [InlineKeyboardButton('В начало', callback_data='to_start')],
+        [InlineKeyboardButton('Главное меню', callback_data='to_start')],
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"""Ваш вопрос {context.bot_data['speaker']}:
+        text=dedent(f"""
+        Ваш вопрос {context.bot_data['speaker']}:
         {question}
         Все верно?
-        """,
+        """),
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     message = update.effective_message

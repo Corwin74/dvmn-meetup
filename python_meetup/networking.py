@@ -1,7 +1,8 @@
 import random
 
-from django.utils import timezone
+from textwrap import dedent
 
+from django.utils import timezone
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Filters, Updater, CallbackContext
 
@@ -32,20 +33,21 @@ def network_communicate(update: Update, context: CallbackContext):
         context.bot_data['networking_connection'] = random.choice(
             User.objects.filter(networking=True)
         )
+        print(context.bot_data['networking_connection'])
     keyboard = [
         [InlineKeyboardButton('Следующий контакт', callback_data='next_contact')],
-        [InlineKeyboardButton('В начало', callback_data='to_start')]
+        [InlineKeyboardButton('Главное меню', callback_data='to_start')]
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"""{context.bot_data['networking_connection']}
+        text=dedent(f"""
+        <strong>{context.bot_data['networking_connection']}</strong>
         {context.bot_data['networking_connection'].position} в {context.bot_data['networking_connection'].company}
         {context.bot_data['networking_connection'].info}
         Связаться в Telegram:
-        @{context.bot_data['networking_connection'].tg_nick}
-        Email
-        {context.bot_data['networking_connection'].email}
-        """,
+        <tg-spoiler>@{context.bot_data['networking_connection'].tg_nick}</tg-spoiler>
+        """),
+        parse_mode='HTML',
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     message = update.effective_message

@@ -85,7 +85,9 @@ class DonateAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
+    readonly_fields = ('time_sent',)
     raw_id_fields = ('targets',)
+    list_display = ('__str__', 'time_sent')
 
     def response_add(self, request, obj, post_url_continue=...):
         if not obj.to_send:
@@ -103,6 +105,7 @@ class MessageAdmin(admin.ModelAdmin):
             response.raise_for_status()
             sleep(2)
         obj.to_send = False
+        obj.time_sent = timezone.now()
         obj.save()
         return super().response_add(request, obj, post_url_continue)
 
@@ -122,5 +125,6 @@ class MessageAdmin(admin.ModelAdmin):
             response.raise_for_status()
             sleep(2)
         obj.to_send = False
+        obj.time_sent = timezone.now()
         obj.save()
         return super().response_change(request, obj)

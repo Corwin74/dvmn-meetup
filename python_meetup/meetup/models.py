@@ -179,9 +179,10 @@ class Message(models.Model):
         'Текст сообщения',
         blank=True
     )
-    time_created = models.DateTimeField(
-        'Время создания',
-        default=timezone.now()
+    time_sent = models.DateTimeField(
+        'Время отправки',
+        blank=True,
+        null=True
     )
     to_send = models.BooleanField(
         'Предназначено для отправки',
@@ -194,7 +195,7 @@ class Message(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"Сообщение от {self.time_created.strftime('%d %B - %H:%M')}"
+        return f"Сообщение {self.id}"
 
     class Meta:
         verbose_name = 'Сообщение'

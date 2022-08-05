@@ -173,3 +173,29 @@ class Donate(models.Model):
     class Meta:
         verbose_name = 'Донат'
         verbose_name_plural = 'Донаты'
+
+class Message(models.Model):
+    text = models.TextField(
+        'Текст сообщения',
+        blank=True
+    )
+    time_created = models.DateTimeField(
+        'Время создания',
+        default=timezone.now()
+    )
+    to_send = models.BooleanField(
+        'Предназначено для отправки',
+        default=False
+    )
+    targets = models.ManyToManyField(
+        User,
+        verbose_name='Адресаты для рассылки',
+        null=True
+    )
+
+    def __str__(self) -> str:
+        return f"Сообщение от {self.time_created.strftime('%d %B - %H:%M')}"
+
+    class Meta:
+        verbose_name = 'Сообщение'
+        verbose_name_plural = 'Сообщения'

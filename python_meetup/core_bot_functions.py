@@ -8,17 +8,20 @@ from telegram.ext import Filters, Updater, CallbackContext
 
 from meetup.models import User, Question, Donate, Event
 from meet_schedule import show_program
-from donation import make_donation
+from donation import make_donation, ask_donation_amount
 
 
 def start(update: Update, context: CallbackContext):
     keyboard = [
-        [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'].status == 'SPEAKER' else [],
-        [InlineKeyboardButton('Вопросы ко мне', callback_data='my_questions')] if context.bot_data['user'].status == 'SPEAKER' else [],
+        [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')
+         ] if context.bot_data['user'].status == 'SPEAKER' else [],
+        [InlineKeyboardButton('Вопросы ко мне', callback_data='my_questions')
+         ] if context.bot_data['user'].status == 'SPEAKER' else [],
         [InlineKeyboardButton('Программа', callback_data='show_program')],
         [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
         [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
-        [InlineKeyboardButton('Задонатить', callback_data='make_donation')],
+        [InlineKeyboardButton(
+            'Задонатить', callback_data='make_donation')],
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -43,7 +46,7 @@ def choose_action(update: Update, context: CallbackContext):
     elif response == 'networking':
         return get_networking(update, context)
     elif response == 'make_donation':
-        return make_donation(update, context)
+        return ask_donation_amount(update, context)
     elif response == 'personal_program':
         return get_personal_events(update, context)
     elif response == 'my_questions':
@@ -51,9 +54,11 @@ def choose_action(update: Update, context: CallbackContext):
 
 
 def get_personal_events(update: Update, context: CallbackContext):
-    events = context.bot_data['user'].events.filter(finish_time__gte=timezone.now())
+    events = context.bot_data['user'].events.filter(
+        finish_time__gte=timezone.now())
     keyboard = [
-        [InlineKeyboardButton(f"{event.name} - {event.start_time.strftime('%H:%M')}", callback_data = str(event.id))]
+        [InlineKeyboardButton(
+            f"{event.name} - {event.start_time.strftime('%H:%M')}", callback_data=str(event.id))]
         for event in events
     ] + [[InlineKeyboardButton('В начало', callback_data='to_start')]]
     context.bot.send_message(
@@ -99,11 +104,12 @@ def handle_event(update: Update, context: CallbackContext):
 
 def get_name(update: Update, context: CallbackContext):
     keyboard = [
-       [InlineKeyboardButton('Все верно', callback_data='confirmed')]
+        [InlineKeyboardButton('Все верно', callback_data='confirmed')]
     ]
     if update.message:
         try:
-            context.bot_data['firstname'], context.bot_data['lastname'] = update.message.text.split(' ', 1)
+            context.bot_data['firstname'], context.bot_data['lastname'] = update.message.text.split(
+                ' ', 1)
         except ValueError:
             context.bot.send_message(
                 chat_id=update.message.chat_id,
@@ -203,7 +209,8 @@ def get_info(update: Update, context: CallbackContext):
     else:
         context.bot_data['user'].info = ''
     keyboard = [
-        [InlineKeyboardButton('Да. Начнем общаться', callback_data='yes'), InlineKeyboardButton('Нет, хочу поправить', callback_data='no')]
+        [InlineKeyboardButton('Да. Начнем общаться', callback_data='yes'), InlineKeyboardButton(
+            'Нет, хочу поправить', callback_data='no')]
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -257,7 +264,8 @@ def get_networking(update: Update, context: CallbackContext):
         return get_user_info(update, context)
     elif context.bot_data['user'].networking == False:
         keyboard = [
-            [InlineKeyboardButton('Подтвердить участие в нетворкинге', callback_data='confirm')],
+            [InlineKeyboardButton(
+                'Подтвердить участие в нетворкинге', callback_data='confirm')],
             [InlineKeyboardButton('В начало', callback_data='to_start')]
         ]
         context.bot.send_message(
@@ -277,8 +285,10 @@ def get_networking(update: Update, context: CallbackContext):
 def make_networking(update: Update, context: CallbackContext):
     networking_connections_count = User.objects.filter(networking=True).count()
     keyboard = [
-        [InlineKeyboardButton('Познакомиться', callback_data='find_contact')] if networking_connections_count > 1 else [],
-        [InlineKeyboardButton('Изменить информацию о себе', callback_data='change_info'), InlineKeyboardButton('Отказаться от участия в нетворкинге', callback_data='cancel_networking')],
+        [InlineKeyboardButton('Познакомиться', callback_data='find_contact')
+         ] if networking_connections_count > 1 else [],
+        [InlineKeyboardButton('Изменить информацию о себе', callback_data='change_info'), InlineKeyboardButton(
+            'Отказаться от участия в нетворкинге', callback_data='cancel_networking')],
         [InlineKeyboardButton('В начало', callback_data='to_start')]
     ]
     context.bot.send_message(
@@ -296,7 +306,8 @@ def make_networking(update: Update, context: CallbackContext):
 
 
 def get_questions(update: Update, context: CallbackContext):
-    questions_count = context.bot_data['user'].questions_to.filter(answered=False).count()
+    questions_count = context.bot_data['user'].questions_to.filter(
+        answered=False).count()
     if questions_count == 0:
         keyboard = [
             [InlineKeyboardButton('В начало', callback_data='to_start')],
@@ -333,9 +344,11 @@ def get_questions(update: Update, context: CallbackContext):
 def answer_questions(update: Update, context: CallbackContext):
     if update.callback_query and update.callback_query.data == 'to_start':
         return start(update, context)
-    question = random.choice(context.bot_data['user'].questions_to.filter(answered=False).select_related())
+    question = random.choice(context.bot_data['user'].questions_to.filter(
+        answered=False).select_related())
     keyboard = [
-        [InlineKeyboardButton('Следующий вопрос', callback_data='next_question')],
+        [InlineKeyboardButton('Следующий вопрос',
+                              callback_data='next_question')],
         [InlineKeyboardButton('Не отвечать', callback_data='mark_answered')],
         [InlineKeyboardButton('В начало', callback_data='to_start')],
     ]
@@ -358,7 +371,7 @@ def get_answer(update: Update, context: CallbackContext):
         if update.callback_query.data == 'to_start':
             return start(update, context)
         elif update.callback_query.data == 'mark_answered':
-            context.bot_data['question'].answered=True
+            context.bot_data['question'].answered = True
             context.bot_data['question'].answer_time = timezone.now()
             context.bot_data['question'].save()
             try:
@@ -388,10 +401,12 @@ def get_answer(update: Update, context: CallbackContext):
         except IndexError:
             return get_questions(update, context)
 
+
 def show_speakers(update: Update, context: CallbackContext):
     speakers = User.objects.filter(status='SPEAKER')
     keyboard = [
-        [InlineKeyboardButton(f"{speaker} - {speaker.company}", callback_data=str(speaker.id))]
+        [InlineKeyboardButton(
+            f"{speaker} - {speaker.company}", callback_data=str(speaker.id))]
         for speaker in speakers
     ] + [[InlineKeyboardButton('В начало', callback_data='to_start')]]
     context.bot.send_message(

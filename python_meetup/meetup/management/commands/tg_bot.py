@@ -3,15 +3,16 @@ import re
 
 from dotenv import load_dotenv
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
 from telegram import Update
-from telegram.ext import Filters, Updater, CallbackContext, PreCheckoutQueryHandler
+from telegram.ext import Filters, Updater, CallbackContext, \
+    PreCheckoutQueryHandler
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
-from meetup.models import User, Question, Donate, Event
+from meetup.models import User
 from meet_schedule import event_details
-from donation import precheckout_callback, successful_payment_callback
+from donation import make_donation, precheckout_callback, \
+    successful_payment_callback, ask_donation_amount
 
 from core_bot_functions import (
     start,
@@ -88,9 +89,11 @@ def user_input_handler(update: Update, context: CallbackContext):
         'SEND_QUESTION': send_question,
         'MAKE_NETWORKING': make_networking,
         'NETWORK_COMMUNICATE': network_communicate,
+        'MAKE_DONATION': make_donation,
+        'ASK_DONATION_AMOUNT': ask_donation_amount,
         'CONFIRM_NETWORKING': confirm_networking
     }
-
+    
     state_handler = states_function[user_state]
     next_state = state_handler(update, context)
     context.bot_data['user'].tg_state = next_state

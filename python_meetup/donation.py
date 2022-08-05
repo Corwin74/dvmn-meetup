@@ -1,20 +1,39 @@
 import os
 
-from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, LabeledPrice
 from telegram.ext import CallbackContext
 from meetup.models import User, Donate
 
 
-def make_donation(update: Update, context: CallbackContext):
+def ask_donation_amount(update: Update, context: CallbackContext):
     query = update.callback_query
-    provider_token = os.getenv('PAYMENT_PROVIDER_TOKEN')
     chat_id = query.message.chat.id
+    context.bot.send_message(
+        chat_id=chat_id,
+        text='Введите, пожалуйста, сумму доната:'
+    )
+    return 'MAKE_DONATION'
+
+
+def make_donation(update: Update, context: CallbackContext):
+    user_reply = update.message.text
+    chat_id = update.effective_chat.id
+    try:
+        user_reply = int(user_reply)
+    except ValueError:
+        context.bot.send_message(
+            chat_id=chat_id,
+            text=f'Повторите ввод. {user_reply} не является числом.'
+        )
+        return 'ASK_DONATION_AMOUNT'
+
+    provider_token = os.getenv('PAYMENT_PROVIDER_TOKEN')
     description = "Для продолжения, нажмите кнопку Заплатить"
     payload = "Custom-Payload"
     currency = "USD"
-    price = 5
+    price = user_reply
     prices = [LabeledPrice("Донат", price * 100)]
-    title = "Совершаем платеж доната"
+    title = "Совершаем платеж доната 🤑"
 
     context.bot.send_invoice(
         chat_id,
@@ -26,7 +45,7 @@ def make_donation(update: Update, context: CallbackContext):
         prices
     )
 
-    return 'GET_DONATION'
+    return 'MAKE_DONATION'
 
 
 def precheckout_callback(update: Update, context: CallbackContext) -> None:

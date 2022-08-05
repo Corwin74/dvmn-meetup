@@ -113,8 +113,9 @@ def send_question(update: Update, context: CallbackContext):
             Ответить можно, введя сообщение ниже.
         """),
         parse_mode='HTML',
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
     context.bot_data['speaker'].tg_state = 'ANSWER_QUESTIONS'
+    context.bot_data['speaker'].save()
     update.callback_query.answer(text="Вопрос отправлен")
     return start(update, context)

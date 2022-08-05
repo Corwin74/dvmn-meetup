@@ -93,7 +93,8 @@ def user_input_handler(update: Update, context: CallbackContext):
         'ASK_DONATION_AMOUNT': ask_donation_amount,
         'CONFIRM_NETWORKING': confirm_networking
     }
-    
+    print('Handler is working!', user_state)
+
     state_handler = states_function[user_state]
     next_state = state_handler(update, context)
     context.bot_data['user'].tg_state = next_state

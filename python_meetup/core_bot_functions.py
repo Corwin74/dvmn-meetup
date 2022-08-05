@@ -21,7 +21,7 @@ def start(update: Update, context: CallbackContext):
         [InlineKeyboardButton('Спикеры', callback_data='show_speakers')],
         [InlineKeyboardButton('Нетворкинг', callback_data='networking')],
         [InlineKeyboardButton(
-            'Задонатить', callback_data='make_donation')],
+            'Задонатить', callback_data='ask_donation_amount')],
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -45,7 +45,7 @@ def choose_action(update: Update, context: CallbackContext):
         return show_speakers(update, context)
     elif response == 'networking':
         return get_networking(update, context)
-    elif response == 'make_donation':
+    elif response == 'ask_donation_amount':
         return ask_donation_amount(update, context)
     elif response == 'personal_program':
         return get_personal_events(update, context)

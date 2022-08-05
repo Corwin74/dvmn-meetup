@@ -25,7 +25,7 @@ def make_donation(update: Update, context: CallbackContext):
             chat_id=chat_id,
             text=f'Повторите ввод. {user_reply} не является числом.'
         )
-        return 'ASK_DONATION_AMOUNT'
+        return 'MAKE_DONATION'
 
     provider_token = os.getenv('PAYMENT_PROVIDER_TOKEN')
     description = "Для продолжения, нажмите кнопку Заплатить"

@@ -39,13 +39,13 @@ def get_speaker(update: Update, context: CallbackContext):
     return 'HANDLE_SPEAKER'
 
 
-def handle_speaker(update: Update, context: CallbackContext):
+def handle_speaker(update: Update, context: CallbackContext, speaker=None, event_id=None):
     if update.callback_query.data == 'to_start':
         return start(update, context)
     elif update.callback_query.data == 'back':
         return show_speakers(update, context)
     keyboard = [
-        [InlineKeyboardButton('Назад', callback_data='back')],
+        [InlineKeyboardButton('Назад', callback_data=event_id or 'back')],
         [InlineKeyboardButton('Главное меню', callback_data='to_start')],
     ]
     context.bot.send_message(
@@ -68,7 +68,7 @@ def get_question(update: Update, context: CallbackContext):
         if update.callback_query.data == 'to_start':
             return start(update, context)
         elif update.callback_query.data == 'back':
-            return show_speakers(update, context)
+            return show_speakers(update, context)            
     question = update.message.text
     keyboard = [
         [InlineKeyboardButton('Верно, отправляйте', callback_data=question), InlineKeyboardButton('Изменить', callback_data='correct')],

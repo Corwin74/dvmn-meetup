@@ -33,7 +33,7 @@ def make_donation(update: Update, context: CallbackContext):
     currency = "USD"
     price = user_reply
     prices = [LabeledPrice("Донат", price * 100)]
-    title = "Совершаем платеж доната 🤑"
+    title = "Совершаем платеж доната🤑"
 
     context.bot.send_invoice(
         chat_id,

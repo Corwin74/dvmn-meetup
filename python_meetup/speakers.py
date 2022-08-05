@@ -101,5 +101,20 @@ def send_question(update: Update, context: CallbackContext):
         asker=context.bot_data['user'],
         answerer=context.bot_data['speaker']
     )
+    keyboard = [
+        [InlineKeyboardButton('Не отвечать на вопрос', callback_data='mark_answered')],
+        [InlineKeyboardButton('Главное меню', callback_data='to_start')],
+    ]
+    context.bot.send_message(
+        chat_id=context.bot_data['speaker'].chat_id,
+        text=dedent(f"""
+            Вопрос от {context.bot_data['user']} @{context.bot_data['user'].tg_nick}
+            <i>{update.callback_query.data}</i>
+            Ответить можно, введя сообщение ниже.
+        """),
+        parse_mode='HTML',
+        reply_markup = InlineKeyboardMarkup(keyboard)
+    )
+    context.bot_data['speaker'].tg_state = 'ANSWER_QUESTIONS'
     update.callback_query.answer(text="Вопрос отправлен")
     return start(update, context)

@@ -15,7 +15,6 @@ def event_details(update: Update, context: CallbackContext):
 
     if update.callback_query.data == 'to_start':
         return start(update, context)
-
     event_id = int(update.callback_query.data)
     event = Event.objects.get(id=event_id)
     context.bot_data['speaker'] = event.speaker
@@ -40,4 +39,6 @@ def event_details(update: Update, context: CallbackContext):
         chat_id=message.chat_id,
         message_id=message.message_id
     )
+    context.bot_data['from_event'] = True
+    context.bot_data['event_id'] = event_id
     return 'HANDLE_SPEAKER'

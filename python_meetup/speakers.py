@@ -5,7 +5,8 @@ from django.utils import timezone
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Filters, Updater, CallbackContext
 
-from core_bot_functions import start, show_speakers
+from core_bot_functions import start, show_speakers, show_program
+from meet_schedule import event_details
 from meetup.models import User, Question, Donate, Event
 
 
@@ -36,14 +37,24 @@ def get_speaker(update: Update, context: CallbackContext):
         chat_id=message.chat_id,
         message_id=message.message_id
     )
+    context.bot_data['from_event'] = False
     return 'HANDLE_SPEAKER'
 
 
 def handle_speaker(update: Update, context: CallbackContext, speaker=None, event_id=None):
+    print(f'handle speaker: {update.callback_query.data}')
     if update.callback_query.data == 'to_start':
         return start(update, context)
+    elif update.callback_query.data == 'show_program':
+        return show_program(update, context)
     elif update.callback_query.data == 'back':
-        return show_speakers(update, context)
+        if context.bot_data.get("from_event", False):
+            print('?')
+            update.callback_query.data = context.bot_data['event_id']
+            return event_details(update, context)
+        else:
+            print('!')
+            return show_speakers(update, context)       
     keyboard = [
         [InlineKeyboardButton('Назад', callback_data=event_id or 'back')],
         [InlineKeyboardButton('Главное меню', callback_data='to_start')],
@@ -68,7 +79,11 @@ def get_question(update: Update, context: CallbackContext):
         if update.callback_query.data == 'to_start':
             return start(update, context)
         elif update.callback_query.data == 'back':
-            return show_speakers(update, context)            
+            if context.bot_data.get("from_event", False):
+                update.callback_query.data = context.bot_data['event_id']
+                return event_details(update, context)
+            else:
+                return show_speakers(update, context)        
     question = update.message.text
     keyboard = [
         [InlineKeyboardButton('Верно, отправляйте', callback_data=question), InlineKeyboardButton('Изменить', callback_data='correct')],

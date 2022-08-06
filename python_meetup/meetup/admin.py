@@ -50,6 +50,10 @@ class UserAdmin(admin.ModelAdmin):
         'networking'
     )
     list_filter = ('status', 'networking')
+    list_display_links = (
+        '__str__',
+        'status'
+    )
 
 
 @admin.register(Question)

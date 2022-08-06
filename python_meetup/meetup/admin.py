@@ -83,7 +83,7 @@ class DonateAdmin(admin.ModelAdmin):
         'amount',
         'time'
     )
-    readonly_fields = ('time',)
+    readonly_fields = ('time', 'user', 'amount')
 
 
 

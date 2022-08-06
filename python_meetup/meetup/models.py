@@ -159,7 +159,7 @@ class Donate(models.Model):
     amount = models.DecimalField(
         'Сумма доната',
         decimal_places=2,
-        max_digits=6,
+        max_digits=8,
         default=0
     )
     time = models.DateTimeField(

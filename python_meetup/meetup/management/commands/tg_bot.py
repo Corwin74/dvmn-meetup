@@ -8,7 +8,7 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
 from meetup.models import User, Question, Donate, Event
 from meet_schedule import event_details
-from donation import precheckout_callback, successful_payment_callback
+from donation import precheckout_callback, successful_payment_callback, make_donation
 
 from core_bot_functions import (
     start,
@@ -85,7 +85,8 @@ def user_input_handler(update: Update, context: CallbackContext):
         'SEND_QUESTION': send_question,
         'MAKE_NETWORKING': make_networking,
         'NETWORK_COMMUNICATE': network_communicate,
-        'CONFIRM_NETWORKING': confirm_networking
+        'CONFIRM_NETWORKING': confirm_networking,
+        'MAKE_DONATION': make_donation,
     }
 
     state_handler = states_function[user_state]

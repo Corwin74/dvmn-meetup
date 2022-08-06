@@ -9,10 +9,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Filters, Updater, CallbackContext
 
 from meetup.models import User, Question, Donate, Event
-from donation import make_donation
 
 
-def start(update: Update, context: CallbackContext):
+def start(update: Update, context: CallbackContext, text='''Приветствуем на нашем митапе!'''):
     keyboard = [
         [InlineKeyboardButton('Мои мероприятия', callback_data='personal_program')] if context.bot_data['user'].status == 'SPEAKER' else [],
         [InlineKeyboardButton('Вопросы ко мне', callback_data='my_questions')] if context.bot_data['user'].status == 'SPEAKER' else [],
@@ -21,7 +20,7 @@ def start(update: Update, context: CallbackContext):
     ]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text='''Приветствуем на нашем митапе!''',
+        text=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
     message = update.effective_message
@@ -42,7 +41,7 @@ def choose_action(update: Update, context: CallbackContext):
     elif response == 'networking':
         return get_networking(update, context)
     elif response == 'make_donation':
-        return make_donation(update, context)
+        return ask_donation(update, context)
     elif response == 'personal_program':
         return get_personal_events(update, context)
     elif response == 'my_questions':
@@ -445,3 +444,21 @@ def show_program(update: Update, context: CallbackContext):
         message_id=message.message_id
     )
     return 'EVENT_DETAILS'
+
+
+def ask_donation(update: Update, context: CallbackContext, text='Выберите сумму доната или введите произвольную, но не меньше 100 рублей'):
+    keyboard = [
+        [InlineKeyboardButton('100 р.', callback_data='100'), InlineKeyboardButton('300 р.', callback_data='300'), InlineKeyboardButton('1000 р.', callback_data='1000')],
+        [InlineKeyboardButton('Главное меню', callback_data='start')]
+    ]
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=text,
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+    message = update.effective_message
+    context.bot.delete_message(
+        chat_id=message.chat_id,
+        message_id=message.message_id
+    )
+    return 'MAKE_DONATION'

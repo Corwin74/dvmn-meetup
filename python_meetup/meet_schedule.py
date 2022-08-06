@@ -16,16 +16,23 @@ def event_details(update: Update, context: CallbackContext):
     if update.callback_query.data == 'to_start':
         return start(update, context)
 
-    keyboard = [[InlineKeyboardButton('Назад', callback_data='show_program')]]
     event_id = int(update.callback_query.data)
     event = Event.objects.get(id=event_id)
+    context.bot_data['speaker'] = event.speaker
+
+    keyboard = [
+                [InlineKeyboardButton('Назад', callback_data='show_program')],
+                [InlineKeyboardButton('Задать вопрос',
+                    callback_data=str(context.bot_data['speaker'].id))]
+    ]
+
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text= f'{event.name}\n'
-              f'{event.start_time.strftime("%d %B   %H:%M")} - '
-              f'{event.finish_time.strftime("%H:%M")}\n'
-              f'Спикер: {event.speaker}\n'
-              f'{event.description}',
+        text=f'{event.name}\n'
+             f'{event.start_time.strftime("%d %B   %H:%M")} - '
+             f'{event.finish_time.strftime("%H:%M")}\n'
+             f'Спикер: {event.speaker}\n'
+             f'{event.description}',
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     message = update.effective_message
@@ -33,4 +40,4 @@ def event_details(update: Update, context: CallbackContext):
         chat_id=message.chat_id,
         message_id=message.message_id
     )
-    return 'CHOOSE_ACTION'
+    return 'HANDLE_SPEAKER'

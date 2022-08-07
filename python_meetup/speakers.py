@@ -1,13 +1,11 @@
 from textwrap import dedent
 
-from django.utils import timezone
-
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Filters, Updater, CallbackContext
+from telegram.ext import CallbackContext
 
 from core_bot_functions import start, show_speakers, show_program
 from meet_schedule import event_details
-from meetup.models import User, Question, Donate, Event
+from meetup.models import User, Question
 
 
 def get_speaker(update: Update, context: CallbackContext):
@@ -77,7 +75,7 @@ def get_question(update: Update, context: CallbackContext):
                 update.callback_query.data = context.bot_data['event_id']
                 return event_details(update, context)
             else:
-                return show_speakers(update, context)        
+                return show_speakers(update, context)
     question = update.message.text
     keyboard = [
         [InlineKeyboardButton('Верно, отправляйте', callback_data=question), InlineKeyboardButton('Изменить', callback_data='correct')],

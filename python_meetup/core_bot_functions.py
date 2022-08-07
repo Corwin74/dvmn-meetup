@@ -6,9 +6,9 @@ from textwrap import dedent
 from django.utils import timezone
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Filters, Updater, CallbackContext
+from telegram.ext import CallbackContext
 
-from meetup.models import User, Question, Donate, Event
+from meetup.models import User, Event
 
 
 def start(update: Update, context: CallbackContext, text='''Приветствуем на нашем митапе!'''):
@@ -366,7 +366,7 @@ def get_answer(update: Update, context: CallbackContext):
         if update.callback_query.data == 'to_start':
             return start(update, context)
         elif update.callback_query.data == 'mark_answered':
-            context.bot_data['question'].answered=True
+            context.bot_data['question'].answered = True
             context.bot_data['question'].answer_time = timezone.now()
             context.bot_data['question'].save()
             try:

@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import Filters, Updater, CallbackContext, PreCheckoutQueryHandler
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
-from meetup.models import User, Question, Donate, Event
+from meetup.models import User
 from meet_schedule import event_details
 from donation import precheckout_callback, successful_payment_callback, make_donation
 

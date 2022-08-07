@@ -174,6 +174,7 @@ class Donate(models.Model):
         verbose_name = 'Донат'
         verbose_name_plural = 'Донаты'
 
+
 class Message(models.Model):
     text = models.TextField(
         'Текст сообщения',

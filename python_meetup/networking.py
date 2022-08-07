@@ -2,12 +2,11 @@ import random
 
 from textwrap import dedent
 
-from django.utils import timezone
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Filters, Updater, CallbackContext
+from telegram.ext import CallbackContext
 
 from core_bot_functions import start, get_user_info, get_networking
-from meetup.models import User, Question, Donate, Event
+from meetup.models import User
 
 
 def confirm_networking(update: Update, context: CallbackContext):
@@ -25,7 +24,7 @@ def network_communicate(update: Update, context: CallbackContext):
     if update.callback_query.data == 'change_info':
         return get_user_info(update, context)
     if update.callback_query.data == 'cancel_networking':
-        context.bot_data['user'].networking=False
+        context.bot_data['user'].networking = False
         context.bot_data['user'].save()
         return start(update, context)
     context.bot_data['networking_connection'] = context.bot_data['user']

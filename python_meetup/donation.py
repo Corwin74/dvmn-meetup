@@ -1,6 +1,6 @@
 import os
 
-from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, LabeledPrice
 from telegram.ext import CallbackContext
 from meetup.models import User, Donate
 from core_bot_functions import start, ask_donation

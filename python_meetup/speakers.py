@@ -48,13 +48,7 @@ def handle_speaker(update: Update, context: CallbackContext, speaker=None, event
     elif update.callback_query.data == 'show_program':
         return show_program(update, context)
     elif update.callback_query.data == 'back':
-        if context.bot_data.get("from_event", False):
-            print('?')
-            update.callback_query.data = context.bot_data['event_id']
-            return event_details(update, context)
-        else:
-            print('!')
-            return show_speakers(update, context)       
+        return show_speakers(update, context)
     keyboard = [
         [InlineKeyboardButton('Назад', callback_data=event_id or 'back')],
         [InlineKeyboardButton('Главное меню', callback_data='to_start')],
